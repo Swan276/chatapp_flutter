@@ -67,4 +67,9 @@ class ChatWebsocketDatasource {
     );
     _chatMessageStreamController.add(message);
   }
+
+  void unregisterClient() {
+    _chatMessageStreamController.close();
+    _chatRoomNotiStreamController.close();
+  }
 }

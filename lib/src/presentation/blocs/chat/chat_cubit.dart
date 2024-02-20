@@ -46,9 +46,9 @@ class ChatCubit extends Cubit<ChatState> {
       userId: uId,
       recipientId: _rId,
     );
+    _chatService.sendMessage(message);
     final chatMessages = _addChatMessage(message);
     emit(ChatState(chatMessages: chatMessages));
-    _chatService.sendMessage(message);
   }
 
   void _listenLiveChatMessage() {
@@ -65,6 +65,7 @@ class ChatCubit extends Cubit<ChatState> {
   String _loadUserId() => _memoryStore.get('userId') ?? "";
 
   List<ChatMessage> _addChatMessage(ChatMessage message) {
-    return [...state.chatMessages ?? <ChatMessage>[], message];
+    var chatMessages = List<ChatMessage>.from(state.chatMessages ?? []);
+    return chatMessages..insert(0, message);
   }
 }

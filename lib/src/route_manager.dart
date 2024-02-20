@@ -1,3 +1,4 @@
+import 'package:chatapp_ui/src/data/entities/call/init_call.dart';
 import 'package:chatapp_ui/src/di.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat/chat_cubit.dart';
 import 'package:chatapp_ui/src/presentation/pages/bottom_navigation_page.dart';
@@ -7,6 +8,7 @@ import 'package:chatapp_ui/src/presentation/pages/contacts/contacts_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/login/login_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/playground_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/settings/settings_page.dart';
+import 'package:chatapp_ui/src/presentation/pages/video_call/video_call_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -27,6 +29,7 @@ abstract class RouteManager {
   static const contactsPath = '/contacts';
   static const settingsPath = '/settings';
   static const chatRoomPath = '/chats/:recipientId';
+  static const videoCallPath = '/videoCall/:participantId';
 
   static final router = GoRouter(
     navigatorKey: parentNavigatorKey,
@@ -120,7 +123,21 @@ abstract class RouteManager {
               di.get(),
               recipientId: recipientId,
             ),
-            child: ChatRoomPage(recipientName: recipientId),
+            child: ChatRoomPage(recipientId: recipientId),
+          ),
+          state: state,
+        );
+      },
+    ),
+    GoRoute(
+      path: videoCallPath,
+      pageBuilder: (context, state) {
+        final participantId = state.pathParameters['participantId'] ?? "";
+        final initCall = state.extra as InitCall?;
+        return _getPage(
+          child: VideoCallPage(
+            participantId: participantId,
+            incomingCall: initCall,
           ),
           state: state,
         );

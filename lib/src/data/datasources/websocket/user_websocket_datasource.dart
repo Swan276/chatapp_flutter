@@ -11,14 +11,14 @@ class UserWebsocketDatasource {
 
   late StreamController<User> _userStreamController;
   late Stream<User> userStream;
-  late String _uId;
+  String? _uId;
 
   UserWebsocketDatasource({
     required this.websocketService,
   });
 
   void registerClient(User user) {
-    _uId = user.nickName;
+    _uId ??= user.nickName;
     _userStreamController = StreamController<User>.broadcast();
     userStream = _userStreamController.stream;
     websocketService.subscribe(
@@ -36,5 +36,10 @@ class UserWebsocketDatasource {
     if (user.nickName != _uId) {
       _userStreamController.add(user);
     }
+  }
+
+  void unregisterClient() {
+    _uId = null;
+    _userStreamController.close();
   }
 }

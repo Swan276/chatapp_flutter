@@ -3,25 +3,27 @@ import 'package:chatapp_ui/src/presentation/blocs/chat/chat_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat/chat_state.dart';
 import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
 import 'package:chatapp_ui/src/presentation/pages/chat_room/widgets/chat_message_widget.dart';
+import 'package:chatapp_ui/src/route_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatRoomPage extends StatelessWidget {
-  const ChatRoomPage({super.key, required this.recipientName});
+  const ChatRoomPage({super.key, required this.recipientId});
 
-  final String recipientName;
+  final String recipientId;
 
   @override
   Widget build(BuildContext context) {
-    return _ChatRoomPageContent(recipientName: recipientName);
+    return _ChatRoomPageContent(recipientId: recipientId);
   }
 }
 
 class _ChatRoomPageContent extends StatefulWidget {
-  const _ChatRoomPageContent({required this.recipientName});
+  const _ChatRoomPageContent({required this.recipientId});
 
-  final String recipientName;
+  final String recipientId;
 
   @override
   State<_ChatRoomPageContent> createState() => __ChatRoomPageContentState();
@@ -37,7 +39,7 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
   @override
   void initState() {
     context.read<ChatCubit>().loadChatMessages();
-    name = widget.recipientName;
+    name = widget.recipientId;
     messageInputController = TextEditingController();
     messageInputFocusNode = FocusNode();
     chatScrollController = ScrollController();
@@ -59,8 +61,22 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
         title: Text(name),
         centerTitle: true,
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.call)),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.videocam)),
+          IconButton(
+            onPressed: () {
+              RouteManager.parentNavigatorKey.currentContext!.push(
+                "/videoCall/${widget.recipientId}",
+              );
+            },
+            icon: const Icon(Icons.call),
+          ),
+          IconButton(
+            onPressed: () {
+              RouteManager.parentNavigatorKey.currentContext!.push(
+                "/videoCall/${widget.recipientId}",
+              );
+            },
+            icon: const Icon(Icons.videocam),
+          ),
         ],
       ),
       body: SafeArea(
