@@ -9,6 +9,7 @@ import 'package:chatapp_ui/src/di.dart';
 import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class VideoCallPage extends StatelessWidget {
   const VideoCallPage({
@@ -48,7 +49,8 @@ class VideoCallContent extends StatefulWidget {
   State<VideoCallContent> createState() => _VideoCallContentState();
 }
 
-class _VideoCallContentState extends State<VideoCallContent> {
+class _VideoCallContentState extends State<VideoCallContent>
+    with TickerProviderStateMixin {
   // socket instance
   final videocallWsDs = di.get<VideoCallWebsocketDatasource>();
 
@@ -72,14 +74,25 @@ class _VideoCallContentState extends State<VideoCallContent> {
 
   bool isCallRejected = false;
 
+  bool callEnded = false;
+
   @override
   void initState() {
     // initializing renderers
     _localRTCVideoRenderer.initialize();
     _remoteRTCVideoRenderer.initialize();
 
+    // _askPermissions();
+
     // setup Peer Connection
-    _setupPeerConnection();
+    _setupPeerConnection().then((_) {
+      videocallWsDs.endCallStream?.listen((event) {
+        setState(() {
+          callEnded = true;
+        });
+      });
+    });
+
     super.initState();
   }
 
@@ -90,7 +103,12 @@ class _VideoCallContentState extends State<VideoCallContent> {
     }
   }
 
-  _setupPeerConnection() async {
+  Future<void> _askPermissions() async {
+    Permission.camera.request();
+    Permission.microphone.request();
+  }
+
+  Future<void> _setupPeerConnection() async {
     // create peer connection
     _rtcPeerConnection = await createPeerConnection({
       'iceServers': [
@@ -206,7 +224,7 @@ class _VideoCallContentState extends State<VideoCallContent> {
   }
 
   _leaveCall() {
-    videocallWsDs.endCall();
+    videocallWsDs.endCall(widget.participantId);
     Navigator.pop(context);
   }
 
@@ -246,89 +264,141 @@ class _VideoCallContentState extends State<VideoCallContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        leading: null,
-        centerTitle: true,
-        title: Text(
-          widget.participantId,
-          style: const TextStyle(color: UIColors.surface60),
-        ),
-      ),
-      body: SafeArea(
-        child: isCallRejected
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Call is Rejected",
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: UIColors.surface60,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: _leaveCall,
-                      child: const Text("Leave"),
-                    ),
-                  ],
-                ),
-              )
-            : Column(
+      // backgroundColor: Theme.of(context).colorScheme.background,
+      body: isCallRejected || callEnded
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: Stack(children: [
-                      RTCVideoView(
-                        _remoteRTCVideoRenderer,
-                        objectFit:
-                            RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-                      ),
-                      Positioned(
-                        right: 20,
-                        bottom: 20,
-                        child: SizedBox(
-                          height: 150,
-                          width: 120,
-                          child: RTCVideoView(
-                            _localRTCVideoRenderer,
-                            mirror: isFrontCameraSelected,
-                            objectFit: RTCVideoViewObjectFit
-                                .RTCVideoViewObjectFitCover,
-                          ),
-                        ),
-                      )
-                    ]),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        IconButton(
-                          icon: Icon(isAudioOn ? Icons.mic : Icons.mic_off),
-                          onPressed: _toggleMic,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.call_end),
-                          iconSize: 30,
-                          onPressed: _leaveCall,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.cameraswitch),
-                          onPressed: _switchCamera,
-                        ),
-                        IconButton(
-                          icon: Icon(
-                              isVideoOn ? Icons.videocam : Icons.videocam_off),
-                          onPressed: _toggleCamera,
-                        ),
-                      ],
+                  Text(
+                    callEnded ? "Call Ended" : "Call is Rejected",
+                    // "Call is Rejected",
+                    style: const TextStyle(
+                      fontSize: 24,
+                      color: UIColors.surface60,
                     ),
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: _leaveCall,
+                    child: const Text("Leave"),
                   ),
                 ],
               ),
+            )
+          : Stack(
+              children: [
+                RTCVideoView(
+                  _remoteRTCVideoRenderer,
+                  objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                ),
+                Positioned(
+                  top: 24,
+                  left: 24,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.participantId,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        "02:35",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w200,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 24,
+                  right: 24,
+                  child: Container(
+                    height: 150,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: RTCVideoView(
+                      _localRTCVideoRenderer,
+                      mirror: isFrontCameraSelected,
+                      objectFit:
+                          RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+      bottomSheet: BottomSheet(
+        enableDrag: false,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        backgroundColor:
+            Theme.of(context).colorScheme.background.withOpacity(0.9),
+        elevation: 0,
+        builder: (context) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton.filled(
+                  color: UIColors.primary,
+                  padding: const EdgeInsets.all(8),
+                  icon: Icon(
+                    isAudioOn ? Icons.mic : Icons.mic_off,
+                    color: UIColors.primaryContainer,
+                    size: 24,
+                  ),
+                  onPressed: _toggleMic,
+                ),
+                IconButton.filled(
+                  color: UIColors.primary,
+                  padding: const EdgeInsets.all(8),
+                  icon: Icon(
+                    isVideoOn ? Icons.videocam : Icons.videocam_off,
+                    color: UIColors.primaryContainer,
+                    size: 24,
+                  ),
+                  onPressed: _toggleCamera,
+                ),
+                IconButton.filled(
+                  color: UIColors.primary,
+                  padding: const EdgeInsets.all(8),
+                  icon: const Icon(
+                    Icons.cameraswitch,
+                    color: UIColors.primaryContainer,
+                    size: 24,
+                  ),
+                  onPressed: _switchCamera,
+                ),
+                IconButton.filled(
+                  padding: const EdgeInsets.all(8),
+                  icon: const Icon(
+                    Icons.call_end,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  style: IconButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: _leaveCall,
+                ),
+              ],
+            ),
+          );
+        },
+        onClosing: () {},
       ),
     );
   }

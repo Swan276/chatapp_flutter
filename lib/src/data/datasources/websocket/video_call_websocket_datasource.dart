@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chatapp_ui/src/data/entities/call/end_call.dart';
 import 'package:chatapp_ui/src/data/entities/call/ice_candidate.dart';
 import 'package:chatapp_ui/src/data/entities/call/reply_call.dart';
 import 'package:chatapp_ui/src/data/entities/call/init_call.dart';
@@ -18,6 +19,8 @@ class VideoCallWebsocketDatasource {
   StreamController<RTCIceCandidate>? _incomingIceCandidateController;
   Stream<RTCIceCandidate>? incomingIceCandidateStream;
   Completer<ReplyCall>? callCompleter;
+  StreamController<EndCall>? _endCallController;
+  Stream<EndCall>? endCallStream;
 
   String? _uId;
 
@@ -54,6 +57,12 @@ class VideoCallWebsocketDatasource {
         callback: _onIceCandidateReceived,
       ),
     );
+    websocketService.subscribe(
+      SocketSubscription(
+        destination: '/user/$_uId/callEnded',
+        callback: _onCallEnded,
+      ),
+    );
   }
 
   Future<ReplyCall> makeCall(InitCall offerCall) {
@@ -75,6 +84,8 @@ class VideoCallWebsocketDatasource {
     _incomingIceCandidateController =
         StreamController<RTCIceCandidate>.broadcast();
     incomingIceCandidateStream = _incomingIceCandidateController!.stream;
+    _endCallController = StreamController<EndCall>.broadcast();
+    endCallStream = _endCallController?.stream;
   }
 
   void rejectCall(String callerId) {
@@ -93,6 +104,19 @@ class VideoCallWebsocketDatasource {
     );
   }
 
+  void endCall(String participantId) {
+    websocketService.send(
+      destination: '/app/endCall',
+      body: EndCall(participantId: participantId).toJson(),
+      headers: {"userId": _uId!},
+    );
+    _incomingIceCandidateController?.close();
+    incomingIceCandidateStream = null;
+    _endCallController?.close();
+    endCallStream = null;
+    callCompleter = null;
+  }
+
   void _onCallReceived(StompFrame frame) {
     final payload = frame.body;
     if (payload == null) return;
@@ -105,6 +129,8 @@ class VideoCallWebsocketDatasource {
     if (payload == null) return;
     final answeredCall = ReplyCall.fromJson(payload);
     callCompleter?.complete(answeredCall);
+    _endCallController = StreamController<EndCall>.broadcast();
+    endCallStream = _endCallController?.stream;
   }
 
   void _onCallRejected(StompFrame frame) {
@@ -112,6 +138,8 @@ class VideoCallWebsocketDatasource {
     if (payload == null) return;
     final rejectedCall = ReplyCall.fromJson(payload);
     callCompleter?.complete(rejectedCall);
+    _endCallController?.close();
+    endCallStream = null;
   }
 
   void _onIceCandidateReceived(StompFrame frame) {
@@ -122,16 +150,18 @@ class VideoCallWebsocketDatasource {
     _incomingIceCandidateController?.add(rtcIceCandidate);
   }
 
-  void endCall() {
-    _incomingIceCandidateController?.close();
-    incomingIceCandidateStream = null;
-    callCompleter = null;
+  void _onCallEnded(StompFrame frame) {
+    final payload = frame.body;
+    if (payload == null) return;
+    final endCall = EndCall.fromJson(payload);
+    _endCallController?.add(endCall);
   }
 
   void unregisterClient() {
     _uId = null;
     _incomingCallStreamController.close();
     _incomingIceCandidateController?.close();
+    _endCallController?.close();
     callCompleter = null;
   }
 }
