@@ -18,7 +18,7 @@ class UserWebsocketDatasource {
   });
 
   void registerClient(User user) {
-    _uId ??= user.nickName;
+    _uId ??= user.username;
     _userStreamController = StreamController<User>.broadcast();
     userStream = _userStreamController.stream;
     websocketService.subscribe(
@@ -33,7 +33,7 @@ class UserWebsocketDatasource {
     final payload = frame.body;
     if (payload == null) return;
     final user = User.fromJson(payload);
-    if (user.nickName != _uId) {
+    if (user.username != _uId) {
       _userStreamController.add(user);
     }
   }

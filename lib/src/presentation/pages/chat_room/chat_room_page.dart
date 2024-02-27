@@ -90,10 +90,8 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
                   onTap: messageInputFocusNode.unfocus,
                   child: BlocConsumer<ChatCubit, ChatState>(
                     listener: (context, state) {
-                      if (state.chatMessages != null) {
-                        WidgetsBinding.instance
-                            .addPostFrameCallback((_) => _scrollToBottom());
-                      }
+                      WidgetsBinding.instance
+                          .addPostFrameCallback((_) => _scrollToBottom());
                     },
                     builder: (context, state) {
                       if (state.chatMessageError != null) {
@@ -128,7 +126,7 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
                               return ChatMessageWidget(
                                 message.content,
                                 isSelf: message.senderId ==
-                                    context.read<ChatCubit>().uId,
+                                    context.read<ChatCubit>().user.username,
                               );
                             },
                             reverse: true,
@@ -201,10 +199,12 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
   }
 
   void _scrollToBottom() {
-    chatScrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    if (chatScrollController.hasClients) {
+      chatScrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 }

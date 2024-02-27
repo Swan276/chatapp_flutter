@@ -1,4 +1,5 @@
 import 'package:chatapp_ui/src/di.dart';
+import 'package:chatapp_ui/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat_rooms/chat_rooms_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/online_users/online_users_cubit.dart';
 import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
@@ -13,13 +14,22 @@ class ChatsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.read<AuthCubit>().getCurrentUser();
     return MultiBlocProvider(
       providers: [
         BlocProvider<ChatRoomsCubit>(
-          create: (context) => di.get<ChatRoomsCubit>(),
+          create: (context) => ChatRoomsCubit(
+            di.get(),
+            di.get(),
+            user!,
+          ),
         ),
         BlocProvider(
-          create: (context) => di.get<OnlineUsersCubit>(),
+          create: (context) => OnlineUsersCubit(
+            di.get(),
+            di.get(),
+            user!,
+          ),
         ),
       ],
       child: const _ChatsPage(),

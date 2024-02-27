@@ -9,7 +9,7 @@
             "request": "launch",
             "type": "dart",
             "args": [
-                "--dart-define=host=localhost",
+                "--dart-define=host=localhost:8088",
             ]
         },
         {
@@ -17,14 +17,17 @@
             "request": "launch",
             "type": "dart",
             "args": [
-                "--dart-define=host=192.168.1.2",
+                "--dart-define=host=192.168.1.2:8088",
             ]
         },
         {
             "name": "chatapp_ui (profile mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "args": [
+                "--dart-define=host=192.168.1.2:8088",
+            ]
         },
         {
             "name": "chatapp_ui (release mode)",
@@ -32,7 +35,7 @@
             "type": "dart",
             "flutterMode": "release",
             "args": [
-                "--dart-define=host=192.168.1.2",
+                "--dart-define=host=192.168.1.2:8088",
             ]
         }
     ]

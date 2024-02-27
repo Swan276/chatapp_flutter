@@ -2,18 +2,18 @@ import 'package:injectable/injectable.dart';
 
 @Singleton()
 class MemoryStoreService {
-  MemoryStoreService(Map<String, String> data) : _data = data;
+  MemoryStoreService(Map<String, dynamic> data) : _data = data;
 
-  final Map<String, String> _data;
+  final Map<String, dynamic> _data;
 
   @factoryMethod
   factory MemoryStoreService.init() {
     return MemoryStoreService({});
   }
 
-  String? get(String key) => _data[key];
+  dynamic get(String key) => _data[key];
 
-  void put(String key, String value) {
+  void put(String key, dynamic value) {
     _data[key] = value;
   }
 

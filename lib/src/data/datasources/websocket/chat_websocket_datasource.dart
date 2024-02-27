@@ -27,7 +27,7 @@ class ChatWebsocketDatasource {
     chatRoomNotiStream = _chatRoomNotiStreamController.stream;
     websocketService.subscribe(
       SocketSubscription(
-        destination: '/user/${user.nickName}/queue/messages',
+        destination: '/user/${user.username}/queue/messages',
         callback: _onChatMessageReceived,
       ),
     );

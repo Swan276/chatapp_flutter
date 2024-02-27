@@ -2,24 +2,25 @@ import 'package:chatapp_ui/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignUpPageState extends State<SignUpPage> {
   late final GlobalKey<FormState> _formKey;
   late final TextEditingController _usernameController;
+  late final TextEditingController _fullNameController;
   late final TextEditingController _passwordController;
 
   @override
   void initState() {
     _formKey = GlobalKey<FormState>();
     _usernameController = TextEditingController();
+    _fullNameController = TextEditingController();
     _passwordController = TextEditingController();
     super.initState();
   }
@@ -37,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    "Login",
+                    "SignUp",
                     style: TextStyle(
                       color: UIColors.surface20,
                       fontSize: 24,
@@ -65,6 +66,25 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 40),
                   TextFormField(
+                    controller: _fullNameController,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      filled: true,
+                      hintText: "Full Name",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    validator: (value) {
+                      if ((value ?? "").isEmpty) {
+                        return "Full Name cannot be empty";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 40),
+                  TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
@@ -83,32 +103,26 @@ class _LoginPageState extends State<LoginPage> {
                       return null;
                     },
                   ),
-                  if (state is AuthLoginErrorState) const SizedBox(height: 16),
-                  if (state is AuthLoginErrorState)
+                  if (state is AuthSignUpErrorState) const SizedBox(height: 16),
+                  if (state is AuthSignUpErrorState)
                     Text(
                       state.error!,
                       style: const TextStyle(color: Colors.red),
                     ),
                   const SizedBox(height: 40),
                   ElevatedButton(
-                    onPressed: state is AuthLoginLoadingState
+                    onPressed: state is AuthSignUpLoadingState
                         ? null
                         : () {
                             if (_formKey.currentState?.validate() ?? false) {
-                              context.read<AuthCubit>().login(
+                              context.read<AuthCubit>().register(
                                     username: _usernameController.text,
+                                    fullName: _fullNameController.text,
                                     password: _passwordController.text,
                                   );
                             }
                           },
-                    child: const Text("Login"),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      context.go('/login/signup');
-                    },
-                    child: const Text("Create an account"),
+                    child: const Text("SignUp"),
                   ),
                 ],
               ),

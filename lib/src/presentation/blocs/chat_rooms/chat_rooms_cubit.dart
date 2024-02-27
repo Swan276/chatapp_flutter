@@ -1,29 +1,25 @@
 import 'package:chatapp_ui/src/data/datasources/remote_datasource.dart';
 import 'package:chatapp_ui/src/data/datasources/websocket/chat_websocket_datasource.dart';
 import 'package:chatapp_ui/src/data/entities/chat_room.dart';
-import 'package:chatapp_ui/src/data/services/memory_store_service.dart';
+import 'package:chatapp_ui/src/data/entities/user.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat_rooms/chat_rooms_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:injectable/injectable.dart';
 
-@Injectable()
 class ChatRoomsCubit extends Cubit<ChatRoomsState> {
   ChatRoomsCubit(
     RemoteDatasource remoteDatasource,
-    MemoryStoreService memoryStoreService,
     ChatWebsocketDatasource chatWebsocketDatasource,
+    User currentUser,
   )   : _remoteDS = remoteDatasource,
-        _memoryStore = memoryStoreService,
         _chatWsDs = chatWebsocketDatasource,
+        _currentUser = currentUser,
         super(ChatRoomsState()) {
-    _uId = _loadUserId();
     _loadChatRooms();
   }
 
   final RemoteDatasource _remoteDS;
-  final MemoryStoreService _memoryStore;
   final ChatWebsocketDatasource _chatWsDs;
-  late final String _uId;
+  final User _currentUser;
 
   Future<void> refresh() async {
     await _loadChatRooms();
@@ -38,7 +34,8 @@ class ChatRoomsCubit extends Cubit<ChatRoomsState> {
 
   Future<void> _loadChatRooms() async {
     try {
-      final chatRooms = await _remoteDS.getChatRooms(_uId);
+      final chatRooms = await _remoteDS.getChatRooms(_currentUser.username);
+      // final chatRooms = <ChatRoom>[];
       _listenChatRoomNoti();
       emit(state.copyWith(chatRooms: chatRooms, chatRoomsError: null));
     } catch (e) {
@@ -57,8 +54,6 @@ class ChatRoomsCubit extends Cubit<ChatRoomsState> {
       );
     });
   }
-
-  String _loadUserId() => _memoryStore.get('userId') ?? "";
 
   (List<ChatRoom>, List<String>) _updateChatRoom(ChatRoom chatRoom) {
     if (state.chatRooms == null || state.chatRooms!.isEmpty) {

@@ -41,7 +41,7 @@ class OnlineUsersSection extends StatelessWidget {
                 return InkWell(
                   onTap: () {
                     RouteManager.parentNavigatorKey.currentContext!
-                        .push("/chats/${user.nickName}");
+                        .push("/chats/${user.username}");
                   },
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

@@ -29,7 +29,7 @@ class VideoCallWebsocketDatasource {
   });
 
   void registerClient(User user) {
-    _uId ??= user.nickName;
+    _uId ??= user.username;
     _incomingCallStreamController = StreamController<InitCall>.broadcast();
     incomingCallStream = _incomingCallStreamController.stream;
 

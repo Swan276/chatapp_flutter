@@ -1,5 +1,6 @@
 import 'package:chatapp_ui/src/data/entities/call/init_call.dart';
 import 'package:chatapp_ui/src/di.dart';
+import 'package:chatapp_ui/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat/chat_cubit.dart';
 import 'package:chatapp_ui/src/presentation/pages/bottom_navigation_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/chat_room/chat_room_page.dart';
@@ -8,6 +9,8 @@ import 'package:chatapp_ui/src/presentation/pages/contacts/contacts_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/login/login_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/playground_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/settings/settings_page.dart';
+import 'package:chatapp_ui/src/presentation/pages/signup/signup_page.dart';
+import 'package:chatapp_ui/src/presentation/pages/splash/splash_screen.dart';
 import 'package:chatapp_ui/src/presentation/pages/video_call/video_call_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,8 +26,10 @@ abstract class RouteManager {
   static final GlobalKey<NavigatorState> settingsTabNavigatorKey =
       GlobalKey<NavigatorState>();
 
+  static const splashPath = '/splash';
   static const playgroundPath = '/playground';
   static const loginPath = '/login';
+  static const signUpPath = 'signup';
   static const chatsPath = '/chats';
   static const contactsPath = '/contacts';
   static const settingsPath = '/settings';
@@ -34,11 +39,24 @@ abstract class RouteManager {
   static final router = GoRouter(
     navigatorKey: parentNavigatorKey,
     debugLogDiagnostics: true,
-    initialLocation: loginPath,
+    initialLocation: '/',
     routes: _routes,
   );
 
   static final _routes = [
+    GoRoute(
+      path: '/',
+      redirect: (context, state) => splashPath,
+    ),
+    GoRoute(
+      path: splashPath,
+      pageBuilder: (context, state) {
+        return _getPage(
+          child: const SplashScreen(),
+          state: state,
+        );
+      },
+    ),
     GoRoute(
       path: playgroundPath,
       pageBuilder: (context, state) {
@@ -56,6 +74,17 @@ abstract class RouteManager {
           state: state,
         );
       },
+      routes: [
+        GoRoute(
+          path: signUpPath,
+          pageBuilder: (context, state) {
+            return _getPage(
+              child: const SignUpPage(),
+              state: state,
+            );
+          },
+        ),
+      ],
     ),
     StatefulShellRoute.indexedStack(
       parentNavigatorKey: parentNavigatorKey,
@@ -114,13 +143,12 @@ abstract class RouteManager {
       path: chatRoomPath,
       pageBuilder: (context, state) {
         final recipientId = state.pathParameters['recipientId'] ?? "";
-        // TODO: find a way to get recipient name
         return _getPage(
           child: BlocProvider<ChatCubit>(
             create: (context) => ChatCubit(
               di.get(),
               di.get(),
-              di.get(),
+              user: context.read<AuthCubit>().getCurrentUser()!,
               recipientId: recipientId,
             ),
             child: ChatRoomPage(recipientId: recipientId),

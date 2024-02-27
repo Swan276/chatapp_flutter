@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:chatapp_ui/src/constants/api_constants.dart';
+import 'package:chatapp_ui/src/constants/constants.dart';
 import 'package:chatapp_ui/src/data/entities/user.dart';
+import 'package:chatapp_ui/src/data/services/secure_store_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stomp_dart_client/stomp.dart';
@@ -9,21 +11,32 @@ import 'package:stomp_dart_client/stomp_config.dart';
 
 @Singleton()
 class WebsocketService {
+  WebsocketService(SecureStoreService secureStoreService)
+      : _secureStoreService = secureStoreService;
+
+  final SecureStoreService _secureStoreService;
+
   StompClient? _stompClient;
   final Set<SocketSubscription> _subscriptions = {};
 
-  void registerClient(User user) {
+  void registerClient(User user) async {
+    final token = await _secureStoreService.get(key: jwtTokenKey);
     _stompClient = StompClient(
       config: StompConfig(
         url:
             '${ApiConstants.websocketBaseUrl}/${ApiConstants.websocketChannel}',
-        stompConnectHeaders: {"userId": user.nickName},
+        webSocketConnectHeaders: {
+          "Authorization": "Bearer $token",
+        },
+        stompConnectHeaders: {
+          "userId": user.username,
+        },
         onWebSocketError: (dynamic error) {
           print(error.toString());
         },
         onConnect: (frame) {
           send(
-            destination: "/app/user.addUser",
+            destination: "/app/setUserOnline",
             body: user.toJson(),
           );
           for (SocketSubscription sub in _subscriptions) {
