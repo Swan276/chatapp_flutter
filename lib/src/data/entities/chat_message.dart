@@ -69,8 +69,9 @@ class ChatMessage extends Equatable {
       recipientId: map['recipientId'] as String,
       content: map['content'] as String,
       timestamp: DateTime.tryParse(
-            map['timestamp']?.toString() ?? DateTime.now().toIso8601String(),
-          ) ??
+            map['timestamp']?.toString() ??
+                DateTime.now().toUtc().toIso8601String(),
+          )?.toLocal() ??
           DateTime.fromMillisecondsSinceEpoch(map['timestamp'] as int),
     );
   }

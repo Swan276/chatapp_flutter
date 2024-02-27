@@ -55,6 +55,7 @@ class _AppWrapper extends StatelessWidget {
                 actions: [
                   TextButton(
                     onPressed: () {
+                      Navigator.pop(context);
                       context.read<AuthCubit>().logout();
                     },
                     child: const Text("OK"),

@@ -1,4 +1,6 @@
 import 'package:chatapp_ui/src/data/entities/chat_message.dart';
+import 'package:chatapp_ui/src/di.dart';
+import 'package:chatapp_ui/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat/chat_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat/chat_state.dart';
 import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
@@ -16,7 +18,15 @@ class ChatRoomPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ChatRoomPageContent(recipientId: recipientId);
+    return BlocProvider<ChatCubit>(
+      create: (context) => ChatCubit(
+        di.get(),
+        di.get(),
+        user: context.read<AuthCubit>().getCurrentUser()!,
+        recipientId: recipientId,
+      ),
+      child: _ChatRoomPageContent(recipientId: recipientId),
+    );
   }
 }
 

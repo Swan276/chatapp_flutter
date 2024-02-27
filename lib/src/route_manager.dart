@@ -1,7 +1,4 @@
 import 'package:chatapp_ui/src/data/entities/call/init_call.dart';
-import 'package:chatapp_ui/src/di.dart';
-import 'package:chatapp_ui/src/presentation/blocs/auth/auth_cubit.dart';
-import 'package:chatapp_ui/src/presentation/blocs/chat/chat_cubit.dart';
 import 'package:chatapp_ui/src/presentation/pages/bottom_navigation_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/chat_room/chat_room_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/chats/chats_page.dart';
@@ -12,7 +9,6 @@ import 'package:chatapp_ui/src/presentation/pages/signup/signup_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/splash/splash_screen.dart';
 import 'package:chatapp_ui/src/presentation/pages/video_call/video_call_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 abstract class RouteManager {
@@ -106,9 +102,7 @@ abstract class RouteManager {
               path: profilePath,
               pageBuilder: (context, state) {
                 return _getPage(
-                  child: ProfilePage(
-                    user: context.read<AuthCubit>().getCurrentUser()!,
-                  ),
+                  child: const ProfilePage(),
                   state: state,
                 );
               },
@@ -128,15 +122,7 @@ abstract class RouteManager {
       pageBuilder: (context, state) {
         final recipientId = state.pathParameters['recipientId'] ?? "";
         return _getPage(
-          child: BlocProvider<ChatCubit>(
-            create: (context) => ChatCubit(
-              di.get(),
-              di.get(),
-              user: context.read<AuthCubit>().getCurrentUser()!,
-              recipientId: recipientId,
-            ),
-            child: ChatRoomPage(recipientId: recipientId),
-          ),
+          child: ChatRoomPage(recipientId: recipientId),
           state: state,
         );
       },

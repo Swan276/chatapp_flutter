@@ -2,28 +2,34 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 
+import 'package:chatapp_ui/src/data/entities/chat_message.dart';
+
 class ChatRoom extends Equatable {
   const ChatRoom({
     required this.id,
     required this.chatId,
     required this.senderId,
     required this.recipientId,
+    required this.latestChatMessage,
   });
 
   final String id;
   final String chatId;
   final String senderId;
   final String recipientId;
+  final ChatMessage latestChatMessage;
 
   factory ChatRoom.buildForSelf({
     required String senderId,
     required String recipientId,
+    required ChatMessage latestChatMessage,
   }) {
     return ChatRoom(
       id: "",
       chatId: "${senderId}_$recipientId",
-      senderId: recipientId,
-      recipientId: senderId,
+      senderId: senderId,
+      recipientId: recipientId,
+      latestChatMessage: latestChatMessage,
     );
   }
 
@@ -32,12 +38,14 @@ class ChatRoom extends Equatable {
     String? chatId,
     String? senderId,
     String? recipientId,
+    ChatMessage? latestChatMessage,
   }) {
     return ChatRoom(
       id: id ?? this.id,
       chatId: chatId ?? this.chatId,
       senderId: senderId ?? this.senderId,
       recipientId: recipientId ?? this.recipientId,
+      latestChatMessage: latestChatMessage ?? this.latestChatMessage,
     );
   }
 
@@ -47,6 +55,7 @@ class ChatRoom extends Equatable {
       'chatId': chatId,
       'senderId': senderId,
       'recipientId': recipientId,
+      'latestChatMessage': latestChatMessage.toMap(),
     };
   }
 
@@ -56,6 +65,8 @@ class ChatRoom extends Equatable {
       chatId: map['chatId'] as String,
       senderId: map['senderId'] as String,
       recipientId: map['recipientId'] as String,
+      latestChatMessage:
+          ChatMessage.fromMap(map['latestChatMessage'] as Map<String, dynamic>),
     );
   }
 
@@ -70,5 +81,16 @@ class ChatRoom extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, chatId, senderId, recipientId];
+  List<Object> get props {
+    return [
+      id,
+      chatId,
+      senderId,
+      recipientId,
+      latestChatMessage,
+    ];
+  }
+
+  @override
+  bool get stringify => true;
 }

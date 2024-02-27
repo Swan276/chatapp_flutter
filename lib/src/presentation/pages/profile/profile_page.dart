@@ -1,14 +1,27 @@
 import 'package:chatapp_ui/src/data/entities/user.dart';
+import 'package:chatapp_ui/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
 import 'package:chatapp_ui/src/presentation/pages/profile/widgets/logout_button.dart';
 import 'package:chatapp_ui/src/presentation/pages/profile/widgets/profile_appbar.dart';
 import 'package:chatapp_ui/src/presentation/pages/profile/widgets/profile_info.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key, required this.user});
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
 
-  final User user;
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  late final User user;
+
+  @override
+  void initState() {
+    user = context.read<AuthCubit>().getCurrentUser()!;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

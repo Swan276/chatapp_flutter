@@ -46,7 +46,7 @@ class ChatsListSection extends StatelessWidget {
             itemBuilder: (context, index) {
               final chatRoom = state.filteredChatRooms![index];
               return ChatItem(
-                name: chatRoom.recipientId,
+                chatRoom: chatRoom,
                 isNotified: state.notifiedChatRooms.contains(chatRoom.chatId),
                 onTap: () {
                   context.read<ChatRoomsCubit>().readNoti(chatRoom.chatId);
