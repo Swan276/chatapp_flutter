@@ -23,7 +23,7 @@ class UserWebsocketDatasource {
     userStream = _userStreamController.stream;
     websocketService.subscribe(
       SocketSubscription(
-        destination: '/user/public',
+        destination: '/public',
         callback: _onPublicMessageReceived,
       ),
     );

@@ -9,7 +9,10 @@ import 'package:injectable/injectable.dart';
 
 @Injectable()
 class AuthService {
-  AuthService(this.secureStoreService, this.remoteDatasource);
+  AuthService(
+    this.secureStoreService,
+    this.remoteDatasource,
+  );
 
   final SecureStoreService secureStoreService;
   final RemoteDatasource remoteDatasource;
@@ -19,7 +22,7 @@ class AuthService {
   User? get currentUser => _currentUser;
 
   Future<User?> isLoggedIn() async {
-    if (await isTokenExists()) {
+    if (await _isTokenExists()) {
       if (_currentUser != null) return _currentUser;
       final user = await _getCurrentUser();
       if (user != null) {
@@ -83,7 +86,7 @@ class AuthService {
     ]);
   }
 
-  Future<bool> isTokenExists() async {
+  Future<bool> _isTokenExists() async {
     return (await secureStoreService.get(key: jwtTokenKey)) != null;
   }
 }

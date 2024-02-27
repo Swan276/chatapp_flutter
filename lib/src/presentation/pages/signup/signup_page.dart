@@ -1,7 +1,9 @@
 import 'package:chatapp_ui/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
+import 'package:chatapp_ui/src/route_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -123,6 +125,13 @@ class _SignUpPageState extends State<SignUpPage> {
                             }
                           },
                     child: const Text("SignUp"),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      context.go(RouteManager.loginPath);
+                    },
+                    child: const Text("I already have an account"),
                   ),
                 ],
               ),

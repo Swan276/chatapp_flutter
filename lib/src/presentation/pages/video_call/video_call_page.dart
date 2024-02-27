@@ -9,7 +9,6 @@ import 'package:chatapp_ui/src/di.dart';
 import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class VideoCallPage extends StatelessWidget {
   const VideoCallPage({
@@ -82,8 +81,6 @@ class _VideoCallContentState extends State<VideoCallContent>
     _localRTCVideoRenderer.initialize();
     _remoteRTCVideoRenderer.initialize();
 
-    // _askPermissions();
-
     // setup Peer Connection
     _setupPeerConnection().then((_) {
       videocallWsDs.endCallStream?.listen((event) {
@@ -101,11 +98,6 @@ class _VideoCallContentState extends State<VideoCallContent>
     if (mounted) {
       super.setState(fn);
     }
-  }
-
-  Future<void> _askPermissions() async {
-    Permission.camera.request();
-    Permission.microphone.request();
   }
 
   Future<void> _setupPeerConnection() async {
@@ -184,42 +176,40 @@ class _VideoCallContentState extends State<VideoCallContent>
       };
 
       // make a call to remote peer over signalling
-      videocallWsDs
-          .makeCall(
+      final replyCall = await videocallWsDs.makeCall(
         InitCall(
           participantId: widget.participantId,
           participantName: "Swan",
           sdpOffer: offer.toMap(),
         ),
-      )
-          .then((replyCall) async {
-        if (replyCall.isRejected) {
-          setState(() {
-            isCallRejected = true;
-          });
-          return;
-        }
-        // when call is accepted by remote peer
-        await _rtcPeerConnection!.setRemoteDescription(
-          RTCSessionDescription(
-            replyCall.sdpAnswer["sdp"],
-            replyCall.sdpAnswer["type"],
+      );
+
+      if (replyCall.isRejected) {
+        setState(() {
+          isCallRejected = true;
+        });
+        return;
+      }
+      // when call is accepted by remote peer
+      await _rtcPeerConnection!.setRemoteDescription(
+        RTCSessionDescription(
+          replyCall.sdpAnswer["sdp"],
+          replyCall.sdpAnswer["type"],
+        ),
+      );
+      log("Queued Candidates: $rtcIceCadidates", name: "rtc_log");
+      for (var candidate in rtcIceCadidates) {
+        videocallWsDs.offerIceCandidate(
+          IceCandidate(
+            participantId: widget.participantId,
+            iceCandidate: RtcIceCandidateMapper(
+              id: candidate.sdpMid,
+              candidate: candidate.candidate,
+              label: candidate.sdpMLineIndex,
+            ),
           ),
         );
-        log("Queued Candidates: $rtcIceCadidates", name: "rtc_log");
-        for (var candidate in rtcIceCadidates) {
-          videocallWsDs.offerIceCandidate(
-            IceCandidate(
-              participantId: widget.participantId,
-              iceCandidate: RtcIceCandidateMapper(
-                id: candidate.sdpMid,
-                candidate: candidate.candidate,
-                label: candidate.sdpMLineIndex,
-              ),
-            ),
-          );
-        }
-      });
+      }
     }
   }
 

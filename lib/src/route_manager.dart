@@ -5,10 +5,9 @@ import 'package:chatapp_ui/src/presentation/blocs/chat/chat_cubit.dart';
 import 'package:chatapp_ui/src/presentation/pages/bottom_navigation_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/chat_room/chat_room_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/chats/chats_page.dart';
-import 'package:chatapp_ui/src/presentation/pages/contacts/contacts_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/login/login_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/playground_page.dart';
-import 'package:chatapp_ui/src/presentation/pages/settings/settings_page.dart';
+import 'package:chatapp_ui/src/presentation/pages/profile/profile_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/signup/signup_page.dart';
 import 'package:chatapp_ui/src/presentation/pages/splash/splash_screen.dart';
 import 'package:chatapp_ui/src/presentation/pages/video_call/video_call_page.dart';
@@ -21,18 +20,16 @@ abstract class RouteManager {
       GlobalKey<NavigatorState>();
   static final GlobalKey<NavigatorState> chatsTabNavigatorKey =
       GlobalKey<NavigatorState>();
-  static final GlobalKey<NavigatorState> contactsTabNavigatorKey =
-      GlobalKey<NavigatorState>();
-  static final GlobalKey<NavigatorState> settingsTabNavigatorKey =
+  static final GlobalKey<NavigatorState> profileTabNavigatorKey =
       GlobalKey<NavigatorState>();
 
   static const splashPath = '/splash';
   static const playgroundPath = '/playground';
   static const loginPath = '/login';
-  static const signUpPath = 'signup';
+  static const signUpPath = '/signup';
   static const chatsPath = '/chats';
   static const contactsPath = '/contacts';
-  static const settingsPath = '/settings';
+  static const profilePath = '/profile';
   static const chatRoomPath = '/chats/:recipientId';
   static const videoCallPath = '/videoCall/:participantId';
 
@@ -74,17 +71,16 @@ abstract class RouteManager {
           state: state,
         );
       },
-      routes: [
-        GoRoute(
-          path: signUpPath,
-          pageBuilder: (context, state) {
-            return _getPage(
-              child: const SignUpPage(),
-              state: state,
-            );
-          },
-        ),
-      ],
+      routes: const [],
+    ),
+    GoRoute(
+      path: signUpPath,
+      pageBuilder: (context, state) {
+        return _getPage(
+          child: const SignUpPage(),
+          state: state,
+        );
+      },
     ),
     StatefulShellRoute.indexedStack(
       parentNavigatorKey: parentNavigatorKey,
@@ -104,27 +100,15 @@ abstract class RouteManager {
           ],
         ),
         StatefulShellBranch(
-          navigatorKey: contactsTabNavigatorKey,
+          navigatorKey: profileTabNavigatorKey,
           routes: [
             GoRoute(
-              path: contactsPath,
+              path: profilePath,
               pageBuilder: (context, state) {
                 return _getPage(
-                  child: const ContactsPage(),
-                  state: state,
-                );
-              },
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          navigatorKey: settingsTabNavigatorKey,
-          routes: [
-            GoRoute(
-              path: settingsPath,
-              pageBuilder: (context, state) {
-                return _getPage(
-                  child: const SettingsPage(),
+                  child: ProfilePage(
+                    user: context.read<AuthCubit>().getCurrentUser()!,
+                  ),
                   state: state,
                 );
               },

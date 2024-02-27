@@ -27,8 +27,8 @@ class ChatsListSection extends StatelessWidget {
             ),
           );
         }
-        if (state.chatRooms != null) {
-          if (state.chatRooms!.isEmpty) {
+        if (state.filteredChatRooms != null) {
+          if (state.filteredChatRooms!.isEmpty) {
             return const Center(
               child: Padding(
                 padding: EdgeInsets.only(top: 8.0),
@@ -41,9 +41,10 @@ class ChatsListSection extends StatelessWidget {
           }
           return ListView.builder(
             shrinkWrap: true,
-            itemCount: state.chatRooms!.length,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: state.filteredChatRooms!.length,
             itemBuilder: (context, index) {
-              final chatRoom = state.chatRooms![index];
+              final chatRoom = state.filteredChatRooms![index];
               return ChatItem(
                 name: chatRoom.recipientId,
                 isNotified: state.notifiedChatRooms.contains(chatRoom.chatId),

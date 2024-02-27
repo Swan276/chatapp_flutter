@@ -44,22 +44,24 @@ class _BottomNavigationPageState extends State<BottomNavigationPage> {
           currentIndex: widget.child.currentIndex,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.chat),
+              icon: Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Icon(Icons.chat),
+              ),
               label: "Chats",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.people_alt_outlined),
-              label: "Contacts",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: "Settings",
+              icon: Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Icon(Icons.person),
+              ),
+              label: "Profile",
             ),
           ],
           onTap: (index) {
             widget.child.goBranch(
               index,
-              initialLocation: index == widget.child.currentIndex,
+              initialLocation: index == 0,
             );
             setState(() {});
           },

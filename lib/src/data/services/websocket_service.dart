@@ -35,10 +35,6 @@ class WebsocketService {
           print(error.toString());
         },
         onConnect: (frame) {
-          send(
-            destination: "/app/setUserOnline",
-            body: user.toJson(),
-          );
           for (SocketSubscription sub in _subscriptions) {
             _stompClient!.subscribe(
               destination: sub.destination,

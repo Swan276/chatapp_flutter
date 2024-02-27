@@ -9,6 +9,7 @@
             "request": "launch",
             "type": "dart",
             "args": [
+                "--web-port=8080",
                 "--dart-define=host=localhost:8088",
             ]
         },
@@ -17,6 +18,7 @@
             "request": "launch",
             "type": "dart",
             "args": [
+                "--web-port=8080",
                 "--dart-define=host=192.168.1.2:8088",
             ]
         },
@@ -26,6 +28,7 @@
             "type": "dart",
             "flutterMode": "profile",
             "args": [
+                "--web-port=8080",
                 "--dart-define=host=192.168.1.2:8088",
             ]
         },
@@ -35,6 +38,7 @@
             "type": "dart",
             "flutterMode": "release",
             "args": [
+                "--web-port=8080",
                 "--dart-define=host=192.168.1.2:8088",
             ]
         }

@@ -85,7 +85,7 @@ class VideoCallWebsocketDatasource {
         StreamController<RTCIceCandidate>.broadcast();
     incomingIceCandidateStream = _incomingIceCandidateController!.stream;
     _endCallController = StreamController<EndCall>.broadcast();
-    endCallStream = _endCallController?.stream;
+    endCallStream = _endCallController!.stream;
   }
 
   void rejectCall(String callerId) {

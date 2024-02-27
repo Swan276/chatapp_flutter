@@ -24,8 +24,8 @@ class OnlineUsersSection extends StatelessWidget {
               ),
             );
           }
-          if (state.onlineUsers != null) {
-            if (state.onlineUsers!.isEmpty) {
+          if (state.filteredOnlineUsers != null) {
+            if (state.filteredOnlineUsers!.isEmpty) {
               return const Center(
                 child: Text(
                   "Noone's online :')",
@@ -35,9 +35,9 @@ class OnlineUsersSection extends StatelessWidget {
             }
             return ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: state.onlineUsers!.length,
+              itemCount: state.filteredOnlineUsers!.length,
               itemBuilder: (context, index) {
-                final user = state.onlineUsers![index];
+                final user = state.filteredOnlineUsers![index];
                 return InkWell(
                   onTap: () {
                     RouteManager.parentNavigatorKey.currentContext!

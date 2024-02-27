@@ -13,7 +13,7 @@ class OnlineUsersCubit extends Cubit<OnlineUsersState> {
   )   : _remoteDS = remoteDatasource,
         _userWsDs = userWebsocketDatasource,
         _currentUser = currentUser,
-        super(OnlineUsersState()) {
+        super(const OnlineUsersState()) {
     _loadOnlineUsers();
   }
 
@@ -21,8 +21,19 @@ class OnlineUsersCubit extends Cubit<OnlineUsersState> {
   final UserWebsocketDatasource _userWsDs;
   final User _currentUser;
 
+  String? filterKeyword;
+
   Future<void> refresh() async {
     await _loadOnlineUsers();
+  }
+
+  void filterOnlineUsers(String keyword) {
+    filterKeyword = keyword;
+    if (state.onlineUsers != null) {
+      final filteredOnlineUsers =
+          _filterWithKeyword(state.onlineUsers!, keyword);
+      emit(state.copyWith(filteredOnlineUsers: filteredOnlineUsers));
+    }
   }
 
   Future<void> _loadOnlineUsers() async {
@@ -31,7 +42,16 @@ class OnlineUsersCubit extends Cubit<OnlineUsersState> {
           .where((user) => user.username != _currentUser.username)
           .toList();
       _listenUserUpdate();
-      emit(state.copyWith(onlineUsers: onlineUsers, onlineUsersError: null));
+      emit(
+        state.copyWith(
+          onlineUsers: onlineUsers,
+          filteredOnlineUsers: _filterWithKeyword(
+            onlineUsers,
+            filterKeyword ?? "",
+          ),
+          onlineUsersError: null,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(onlineUsersError: e.toString()));
     }
@@ -41,7 +61,15 @@ class OnlineUsersCubit extends Cubit<OnlineUsersState> {
     _userWsDs.userStream.listen(
       (user) {
         final onlineUsers = _updateUser(user);
-        emit(state.copyWith(onlineUsers: onlineUsers));
+        final filteredOnlineUsers =
+            _filterWithKeyword(onlineUsers, filterKeyword ?? "");
+
+        emit(
+          state.copyWith(
+            onlineUsers: onlineUsers,
+            filteredOnlineUsers: filteredOnlineUsers,
+          ),
+        );
       },
     );
   }
@@ -57,6 +85,18 @@ class OnlineUsersCubit extends Cubit<OnlineUsersState> {
     if (user.status == Status.offline) {
       return onlineUsers;
     }
-    return onlineUsers..add(user);
+    onlineUsers.add(user);
+    return onlineUsers;
+  }
+
+  List<User> _filterWithKeyword(List<User> users, String keyword) {
+    if (keyword.isEmpty) return users;
+    return users
+        .where(
+          (user) =>
+              user.username.contains(keyword) ||
+              user.fullName.contains(keyword),
+        )
+        .toList();
   }
 }

@@ -1,20 +1,32 @@
+import 'package:chatapp_ui/src/data/entities/user.dart';
 import 'package:chatapp_ui/src/di.dart';
 import 'package:chatapp_ui/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat_rooms/chat_rooms_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/online_users/online_users_cubit.dart';
-import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
+import 'package:chatapp_ui/src/presentation/pages/chats/widgets/chats_appbar.dart';
 import 'package:chatapp_ui/src/presentation/pages/chats/widgets/chats_list_section.dart';
 import 'package:chatapp_ui/src/presentation/pages/chats/widgets/online_users_section.dart';
-import 'package:chatapp_ui/src/presentation/widgets/search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ChatsPage extends StatelessWidget {
+class ChatsPage extends StatefulWidget {
   const ChatsPage({super.key});
 
   @override
+  State<ChatsPage> createState() => _ChatsPageState();
+}
+
+class _ChatsPageState extends State<ChatsPage> {
+  late final User? user;
+
+  @override
+  void initState() {
+    user = context.read<AuthCubit>().getCurrentUser();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = context.read<AuthCubit>().getCurrentUser();
     return MultiBlocProvider(
       providers: [
         BlocProvider<ChatRoomsCubit>(
@@ -42,57 +54,27 @@ class _ChatsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NestedScrollView(
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          SliverAppBar(
-            pinned: true,
-            centerTitle: true,
-            backgroundColor: UIColors.background,
-            surfaceTintColor: UIColors.background,
-            elevation: 0,
-            actions: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.edit_square,
-                  color: Colors.white,
-                ),
+    return Column(
+      children: [
+        const ChatsAppbar(),
+        Expanded(
+          child: RefreshIndicator.adaptive(
+            onRefresh: () async {
+              context.read<OnlineUsersCubit>().refresh();
+              context.read<ChatRoomsCubit>().refresh();
+            },
+            child: const SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  OnlineUsersSection(),
+                  ChatsListSection(),
+                ],
               ),
-            ],
-            expandedHeight: 120,
-            flexibleSpace: const FlexibleSpaceBar(
-              centerTitle: false,
-              title: Text(
-                "Chats",
-                style: TextStyle(color: Colors.white),
-              ),
-              titlePadding: EdgeInsets.all(16),
-              collapseMode: CollapseMode.parallax,
             ),
-          ),
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: const CustomSearchBar(),
-            ),
-          ),
-        ];
-      },
-      body: RefreshIndicator.adaptive(
-        onRefresh: () async {
-          context.read<ChatRoomsCubit>().refresh();
-        },
-        child: const SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              OnlineUsersSection(),
-              ChatsListSection(),
-            ],
           ),
         ),
-      ),
+      ],
     );
   }
 }
