@@ -48,7 +48,8 @@ class ChatItem extends StatelessWidget {
                       chatRoom.recipientId,
                       style: const TextStyle(
                         color: UIColors.surface20,
-                        fontSize: 16,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
                         height: 1.5,
                       ),
                     ),
@@ -86,14 +87,14 @@ class ChatItem extends StatelessWidget {
                       height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   isNotified
                       ? Container(
-                          height: 22,
-                          width: 22,
+                          height: 14,
+                          width: 14,
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Color(0xFF1B72C0),
+                            color: UIColors.primary,
                           ),
                         )
                       : const SizedBox.shrink(),
