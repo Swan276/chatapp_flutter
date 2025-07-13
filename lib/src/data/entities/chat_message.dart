@@ -62,7 +62,6 @@ class ChatMessage extends Equatable {
   }
 
   factory ChatMessage.fromMap(Map<String, dynamic> map) {
-    print(map);
     return ChatMessage(
       id: map['id'] as String,
       chatId: map['chatId'] as String?,
@@ -70,7 +69,10 @@ class ChatMessage extends Equatable {
       recipientId: map['recipientId'] as String,
       content: map['content'] as String,
       timestamp: DateTime.tryParse(
-          map['timestamp']?.toString() ?? DateTime.now().toIso8601String()),
+            map['timestamp']?.toString() ??
+                DateTime.now().toUtc().toIso8601String(),
+          )?.toLocal() ??
+          DateTime.fromMillisecondsSinceEpoch(map['timestamp'] as int),
     );
   }
 

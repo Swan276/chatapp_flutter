@@ -15,19 +15,21 @@ class ChatWebsocketDatasource {
   late Stream<ChatMessage> _chatMessageStream;
   late StreamController<ChatRoom> _chatRoomNotiStreamController;
   late Stream<ChatRoom> chatRoomNotiStream;
+  String? _uId;
 
   ChatWebsocketDatasource({
     required this.websocketService,
   });
 
   void registerClient(User user) {
+    _uId = user.username;
     _chatMessageStreamController = StreamController<ChatMessage>.broadcast();
     _chatMessageStream = _chatMessageStreamController.stream;
     _chatRoomNotiStreamController = StreamController<ChatRoom>.broadcast();
     chatRoomNotiStream = _chatRoomNotiStreamController.stream;
     websocketService.subscribe(
       SocketSubscription(
-        destination: '/user/${user.nickName}/queue/messages',
+        destination: '/user/${user.username}/queue/messages',
         callback: _onChatMessageReceived,
       ),
     );
@@ -35,15 +37,17 @@ class ChatWebsocketDatasource {
 
   void _onChatMessageReceived(StompFrame frame) {
     final payload = frame.body;
+    print(payload);
     if (payload == null) return;
     final message = ChatMessage.fromJson(payload);
     _chatMessageStreamController.add(message);
-    _chatRoomNotiStreamController.add(
-      ChatRoom.buildForSelf(
-        senderId: message.senderId,
-        recipientId: message.recipientId,
-      ),
+    final chatRoom = ChatRoom.buildForSelf(
+      senderId: _uId!,
+      recipientId:
+          _uId != message.senderId ? message.senderId : message.recipientId,
+      latestChatMessage: message,
     );
+    _chatRoomNotiStreamController.add(chatRoom);
   }
 
   Stream<ChatMessage> getMessageStreamControllerByRecipientId(
@@ -66,5 +70,10 @@ class ChatWebsocketDatasource {
       body: message.toJson(),
     );
     _chatMessageStreamController.add(message);
+  }
+
+  void unregisterClient() {
+    _chatMessageStreamController.close();
+    _chatRoomNotiStreamController.close();
   }
 }

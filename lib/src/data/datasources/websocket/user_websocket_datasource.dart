@@ -11,19 +11,19 @@ class UserWebsocketDatasource {
 
   late StreamController<User> _userStreamController;
   late Stream<User> userStream;
-  late String _uId;
+  String? _uId;
 
   UserWebsocketDatasource({
     required this.websocketService,
   });
 
   void registerClient(User user) {
-    _uId = user.nickName;
+    _uId ??= user.username;
     _userStreamController = StreamController<User>.broadcast();
     userStream = _userStreamController.stream;
     websocketService.subscribe(
       SocketSubscription(
-        destination: '/user/public',
+        destination: '/public',
         callback: _onPublicMessageReceived,
       ),
     );
@@ -33,8 +33,13 @@ class UserWebsocketDatasource {
     final payload = frame.body;
     if (payload == null) return;
     final user = User.fromJson(payload);
-    if (user.nickName != _uId) {
+    if (user.username != _uId) {
       _userStreamController.add(user);
     }
+  }
+
+  void unregisterClient() {
+    _uId = null;
+    _userStreamController.close();
   }
 }

@@ -1,29 +1,27 @@
 import 'package:chatapp_ui/src/data/datasources/remote_datasource.dart';
 import 'package:chatapp_ui/src/data/datasources/websocket/chat_websocket_datasource.dart';
 import 'package:chatapp_ui/src/data/entities/chat_room.dart';
-import 'package:chatapp_ui/src/data/services/memory_store_service.dart';
+import 'package:chatapp_ui/src/data/entities/user.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat_rooms/chat_rooms_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:injectable/injectable.dart';
 
-@Injectable()
 class ChatRoomsCubit extends Cubit<ChatRoomsState> {
   ChatRoomsCubit(
     RemoteDatasource remoteDatasource,
-    MemoryStoreService memoryStoreService,
     ChatWebsocketDatasource chatWebsocketDatasource,
+    User currentUser,
   )   : _remoteDS = remoteDatasource,
-        _memoryStore = memoryStoreService,
         _chatWsDs = chatWebsocketDatasource,
-        super(ChatRoomsState()) {
-    _uId = _loadUserId();
+        _currentUser = currentUser,
+        super(const ChatRoomsState()) {
     _loadChatRooms();
   }
 
   final RemoteDatasource _remoteDS;
-  final MemoryStoreService _memoryStore;
   final ChatWebsocketDatasource _chatWsDs;
-  late final String _uId;
+  final User _currentUser;
+
+  String? filterKeyword;
 
   Future<void> refresh() async {
     await _loadChatRooms();
@@ -36,11 +34,28 @@ class ChatRoomsCubit extends Cubit<ChatRoomsState> {
     emit(state.copyWith(notifiedChatRooms: notifiedChatRooms));
   }
 
+  void filterChatRooms(String keyword) {
+    filterKeyword = keyword;
+    if (state.chatRooms != null) {
+      final filteredChatRooms = _filterWithKeyword(state.chatRooms!, keyword);
+      emit(state.copyWith(filteredChatRooms: filteredChatRooms));
+    }
+  }
+
   Future<void> _loadChatRooms() async {
     try {
-      final chatRooms = await _remoteDS.getChatRooms(_uId);
+      final chatRooms = await _remoteDS.getChatRooms(_currentUser.username);
       _listenChatRoomNoti();
-      emit(state.copyWith(chatRooms: chatRooms, chatRoomsError: null));
+      emit(
+        state.copyWith(
+          chatRooms: chatRooms,
+          filteredChatRooms: _filterWithKeyword(
+            chatRooms,
+            filterKeyword ?? "",
+          ),
+          chatRoomsError: null,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(chatRoomsError: e.toString()));
     }
@@ -49,16 +64,18 @@ class ChatRoomsCubit extends Cubit<ChatRoomsState> {
   void _listenChatRoomNoti() {
     _chatWsDs.chatRoomNotiStream.listen((chatRoom) {
       final (chatRooms, notifiedChatRooms) = _updateChatRoom(chatRoom);
+      final filteredChatRooms =
+          _filterWithKeyword(chatRooms, filterKeyword ?? "");
+
       emit(
         state.copyWith(
           chatRooms: chatRooms,
+          filteredChatRooms: filteredChatRooms,
           notifiedChatRooms: notifiedChatRooms,
         ),
       );
     });
   }
-
-  String _loadUserId() => _memoryStore.get('userId') ?? "";
 
   (List<ChatRoom>, List<String>) _updateChatRoom(ChatRoom chatRoom) {
     if (state.chatRooms == null || state.chatRooms!.isEmpty) {
@@ -74,5 +91,14 @@ class ChatRoomsCubit extends Cubit<ChatRoomsState> {
     chatRooms.insert(0, chatRoom);
 
     return (chatRooms, notifiedChatRooms);
+  }
+
+  List<ChatRoom> _filterWithKeyword(List<ChatRoom> chatRooms, String keyword) {
+    if (keyword.isEmpty) return chatRooms;
+    return chatRooms
+        .where(
+          (chatRoom) => chatRoom.recipientId.contains(keyword),
+        )
+        .toList();
   }
 }

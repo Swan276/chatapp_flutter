@@ -55,10 +55,6 @@ class ChatMessageWidget extends StatelessWidget {
 
     // show image if the user has image
     // show person icon if the user doesn't have image
-    // TODO: remove following mock code
-    // generated mock ---
-    // final faker = Faker();
-    // final bool hasImage = faker.randomGenerator.boolean();
     String? imageUrl;
     // if (hasImage) {
     //   imageUrl = faker.image.image();

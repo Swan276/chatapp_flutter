@@ -1,42 +1,39 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:flutter/foundation.dart';
+import 'package:equatable/equatable.dart';
 
 import 'package:chatapp_ui/src/data/entities/user.dart';
 
-class OnlineUsersState {
+class OnlineUsersState extends Equatable {
   final List<User>? onlineUsers;
+  final List<User>? filteredOnlineUsers;
   final String? onlineUsersError;
 
-  OnlineUsersState({
+  const OnlineUsersState({
     this.onlineUsers,
+    this.filteredOnlineUsers,
     this.onlineUsersError,
   });
 
   OnlineUsersState copyWith({
     List<User>? onlineUsers,
+    List<User>? filteredOnlineUsers,
     String? onlineUsersError,
   }) {
     return OnlineUsersState(
       onlineUsers: onlineUsers ?? this.onlineUsers,
+      filteredOnlineUsers: filteredOnlineUsers ?? this.filteredOnlineUsers,
       onlineUsersError: onlineUsersError ?? this.onlineUsersError,
     );
   }
 
   @override
-  bool operator ==(covariant OnlineUsersState other) {
-    if (identical(this, other)) return true;
-
-    return listEquals(other.onlineUsers, onlineUsers) &&
-        other.onlineUsersError == onlineUsersError;
-  }
-
-  @override
-  int get hashCode {
-    return onlineUsers.hashCode ^ onlineUsersError.hashCode;
-  }
-
-  @override
   String toString() {
-    return 'OnlineUsersState(onlineUsers: $onlineUsers, onlineUsersError: $onlineUsersError)';
+    return 'OnlineUsersState(onlineUsers: $onlineUsers, filteredOnlineUsers: $filteredOnlineUsers, onlineUsersError: $onlineUsersError)';
   }
+
+  @override
+  List<Object?> get props => [
+        onlineUsers,
+        filteredOnlineUsers,
+        onlineUsersError,
+      ];
 }

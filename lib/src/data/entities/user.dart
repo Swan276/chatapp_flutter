@@ -4,29 +4,29 @@ import 'dart:convert';
 import 'package:chatapp_ui/src/data/entities/status.dart';
 
 class User {
-  final String nickName;
+  final String username;
   final String fullName;
   final Status status;
 
   User({
-    required this.nickName,
+    required this.username,
     required this.fullName,
     required this.status,
   });
 
   factory User.online({
-    required String nickName,
+    required String username,
     required String fullName,
   }) =>
-      User(nickName: nickName, fullName: fullName, status: Status.online);
+      User(username: username, fullName: fullName, status: Status.online);
 
   User copyWith({
-    String? nickName,
+    String? username,
     String? fullName,
     Status? status,
   }) {
     return User(
-      nickName: nickName ?? this.nickName,
+      username: username ?? this.username,
       fullName: fullName ?? this.fullName,
       status: status ?? this.status,
     );
@@ -34,7 +34,7 @@ class User {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'nickName': nickName,
+      'username': username,
       'fullName': fullName,
       'status': status.getName(),
     };
@@ -42,9 +42,9 @@ class User {
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      nickName: map['nickName'] as String,
+      username: map['username'] as String,
       fullName: map['fullName'] as String,
-      status: Status.fromName(map['status'] as String),
+      status: Status.fromName(map['status'] as String? ?? ""),
     );
   }
 
@@ -55,17 +55,17 @@ class User {
 
   @override
   String toString() =>
-      'User(nickName: $nickName, fullName: $fullName, status: $status)';
+      'User(username: $username, fullName: $fullName, status: $status)';
 
   @override
   bool operator ==(covariant User other) {
     if (identical(this, other)) return true;
 
-    return other.nickName == nickName &&
+    return other.username == username &&
         other.fullName == fullName &&
         other.status == status;
   }
 
   @override
-  int get hashCode => nickName.hashCode ^ fullName.hashCode ^ status.hashCode;
+  int get hashCode => username.hashCode ^ fullName.hashCode ^ status.hashCode;
 }

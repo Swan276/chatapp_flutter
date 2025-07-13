@@ -18,28 +18,35 @@ class ChatsListSection extends StatelessWidget {
       builder: (context, state) {
         if (state.chatRoomsError != null) {
           return Center(
-            child: Text(
-              state.chatRoomsError!,
-              style: const TextStyle(fontSize: 18, color: Colors.red),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                state.chatRoomsError!,
+                style: const TextStyle(fontSize: 18, color: Colors.red),
+              ),
             ),
           );
         }
-        if (state.chatRooms != null) {
-          if (state.chatRooms!.isEmpty) {
+        if (state.filteredChatRooms != null) {
+          if (state.filteredChatRooms!.isEmpty) {
             return const Center(
-              child: Text(
-                "No Chat Messages",
-                style: TextStyle(fontSize: 18, color: UIColors.surface40),
+              child: Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text(
+                  "No Chat Messages",
+                  style: TextStyle(fontSize: 18, color: UIColors.surface40),
+                ),
               ),
             );
           }
           return ListView.builder(
             shrinkWrap: true,
-            itemCount: state.chatRooms!.length,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: state.filteredChatRooms!.length,
             itemBuilder: (context, index) {
-              final chatRoom = state.chatRooms![index];
+              final chatRoom = state.filteredChatRooms![index];
               return ChatItem(
-                name: chatRoom.recipientId,
+                chatRoom: chatRoom,
                 isNotified: state.notifiedChatRooms.contains(chatRoom.chatId),
                 onTap: () {
                   context.read<ChatRoomsCubit>().readNoti(chatRoom.chatId);

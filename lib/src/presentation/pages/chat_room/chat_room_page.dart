@@ -1,27 +1,39 @@
 import 'package:chatapp_ui/src/data/entities/chat_message.dart';
+import 'package:chatapp_ui/src/di.dart';
+import 'package:chatapp_ui/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat/chat_cubit.dart';
 import 'package:chatapp_ui/src/presentation/blocs/chat/chat_state.dart';
 import 'package:chatapp_ui/src/presentation/common/ui_colors.dart';
 import 'package:chatapp_ui/src/presentation/pages/chat_room/widgets/chat_message_widget.dart';
+import 'package:chatapp_ui/src/route_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatRoomPage extends StatelessWidget {
-  const ChatRoomPage({super.key, required this.recipientName});
+  const ChatRoomPage({super.key, required this.recipientId});
 
-  final String recipientName;
+  final String recipientId;
 
   @override
   Widget build(BuildContext context) {
-    return _ChatRoomPageContent(recipientName: recipientName);
+    return BlocProvider<ChatCubit>(
+      create: (context) => ChatCubit(
+        di.get(),
+        di.get(),
+        user: context.read<AuthCubit>().getCurrentUser()!,
+        recipientId: recipientId,
+      ),
+      child: _ChatRoomPageContent(recipientId: recipientId),
+    );
   }
 }
 
 class _ChatRoomPageContent extends StatefulWidget {
-  const _ChatRoomPageContent({required this.recipientName});
+  const _ChatRoomPageContent({required this.recipientId});
 
-  final String recipientName;
+  final String recipientId;
 
   @override
   State<_ChatRoomPageContent> createState() => __ChatRoomPageContentState();
@@ -37,7 +49,7 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
   @override
   void initState() {
     context.read<ChatCubit>().loadChatMessages();
-    name = widget.recipientName;
+    name = widget.recipientId;
     messageInputController = TextEditingController();
     messageInputFocusNode = FocusNode();
     chatScrollController = ScrollController();
@@ -59,8 +71,22 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
         title: Text(name),
         centerTitle: true,
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.call)),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.videocam)),
+          IconButton(
+            onPressed: () {
+              RouteManager.parentNavigatorKey.currentContext!.push(
+                "/videoCall/${widget.recipientId}",
+              );
+            },
+            icon: const Icon(Icons.call),
+          ),
+          IconButton(
+            onPressed: () {
+              RouteManager.parentNavigatorKey.currentContext!.push(
+                "/videoCall/${widget.recipientId}",
+              );
+            },
+            icon: const Icon(Icons.videocam),
+          ),
         ],
       ),
       body: SafeArea(
@@ -74,10 +100,8 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
                   onTap: messageInputFocusNode.unfocus,
                   child: BlocConsumer<ChatCubit, ChatState>(
                     listener: (context, state) {
-                      if (state.chatMessages != null) {
-                        WidgetsBinding.instance
-                            .addPostFrameCallback((_) => _scrollToBottom());
-                      }
+                      WidgetsBinding.instance
+                          .addPostFrameCallback((_) => _scrollToBottom());
                     },
                     builder: (context, state) {
                       if (state.chatMessageError != null) {
@@ -112,7 +136,7 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
                               return ChatMessageWidget(
                                 message.content,
                                 isSelf: message.senderId ==
-                                    context.read<ChatCubit>().uId,
+                                    context.read<ChatCubit>().user.username,
                               );
                             },
                             reverse: true,
@@ -185,10 +209,12 @@ class __ChatRoomPageContentState extends State<_ChatRoomPageContent> {
   }
 
   void _scrollToBottom() {
-    chatScrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    if (chatScrollController.hasClients) {
+      chatScrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 }

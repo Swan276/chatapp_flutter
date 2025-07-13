@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:chatapp_ui/src/constants/api_constants.dart';
+import 'package:chatapp_ui/src/constants/constants.dart';
 import 'package:chatapp_ui/src/data/entities/user.dart';
+import 'package:chatapp_ui/src/data/services/secure_store_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:stomp_dart_client/stomp.dart';
@@ -9,22 +11,32 @@ import 'package:stomp_dart_client/stomp_config.dart';
 
 @Singleton()
 class WebsocketService {
-  late StompClient _stompClient;
+  WebsocketService(SecureStoreService secureStoreService)
+      : _secureStoreService = secureStoreService;
+
+  final SecureStoreService _secureStoreService;
+
+  StompClient? _stompClient;
   final Set<SocketSubscription> _subscriptions = {};
 
-  void registerClient(User user) {
+  void registerClient(User user) async {
+    final token = await _secureStoreService.get(key: jwtTokenKey);
     _stompClient = StompClient(
-      config: StompConfig.sockJS(
-        url: '${ApiConstants.baseUrl}/${ApiConstants.websocketChannel}',
-        stompConnectHeaders: {"userId": user.nickName},
-        onWebSocketError: (dynamic error) => print(error.toString()),
+      config: StompConfig(
+        url:
+            '${ApiConstants.websocketBaseUrl}/${ApiConstants.websocketChannel}',
+        webSocketConnectHeaders: {
+          "Authorization": "Bearer $token",
+        },
+        stompConnectHeaders: {
+          "userId": user.username,
+        },
+        onWebSocketError: (dynamic error) {
+          print(error.toString());
+        },
         onConnect: (frame) {
-          send(
-            destination: "/app/user.addUser",
-            body: user.toJson(),
-          );
           for (SocketSubscription sub in _subscriptions) {
-            _stompClient.subscribe(
+            _stompClient!.subscribe(
               destination: sub.destination,
               callback: sub.callback,
               headers: sub.headers,
@@ -36,10 +48,18 @@ class WebsocketService {
         },
       ),
     );
-    _stompClient.activate();
+    _stompClient!.activate();
   }
 
   void subscribe(SocketSubscription subscription) {
+    if (_stompClient != null && _stompClient!.isActive) {
+      _stompClient!.subscribe(
+        destination: subscription.destination,
+        callback: subscription.callback,
+        headers: subscription.headers,
+      );
+      return;
+    }
     _subscriptions.add(subscription);
   }
 
@@ -49,7 +69,7 @@ class WebsocketService {
     String? body,
     Uint8List? binaryBody,
   }) {
-    _stompClient.send(
+    _stompClient?.send(
       destination: destination,
       headers: headers,
       body: body,
@@ -59,7 +79,8 @@ class WebsocketService {
 
   void unregisterClient() {
     _subscriptions.clear();
-    _stompClient.deactivate();
+    _stompClient?.deactivate();
+    _stompClient = null;
   }
 }
 
