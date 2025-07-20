@@ -16,7 +16,7 @@ You can access the backend server together with other diagrams [here](https://gi
 https://github.com/user-attachments/assets/3eba15f8-0d41-462a-9183-d67920ea61f4
 
 ### Call
-
+https://github.com/user-attachments/assets/6219f2da-ceb2-421a-b005-3f41b6549369
 
 ## Overall System Design
 <img width="2373" height="1185" alt="overall-system-design" src="https://github.com/user-attachments/assets/0bbbeb34-2f53-477b-be0a-8083f9b725b9" />
