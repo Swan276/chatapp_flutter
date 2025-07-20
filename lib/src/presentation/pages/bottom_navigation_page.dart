@@ -22,7 +22,8 @@ class _BottomNavigationPageState extends State<BottomNavigationPage> {
     return BlocListener<VideoCallNotiCubit, VideoCallNotiState>(
       listener: (context, state) {
         if (state.incomingCall != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldFeatureController? controller;
+          controller = ScaffoldMessenger.of(context).showSnackBar(
             VideoCallNotiSnackbar(
               callerName: state.incomingCall!.participantName ??
                   state.incomingCall!.participantId,
@@ -31,8 +32,12 @@ class _BottomNavigationPageState extends State<BottomNavigationPage> {
                   "/videoCall/${state.incomingCall!.participantId}",
                   extra: state.incomingCall!,
                 );
+                controller?.close();
               },
-              onCallReject: context.read<VideoCallNotiCubit>().rejectCall,
+              onCallReject: () {
+                context.read<VideoCallNotiCubit>().rejectCall();
+                controller?.close();
+              },
             ).build(context),
           );
         }

@@ -25,8 +25,9 @@ class AuthCubit extends Cubit<AuthState> {
 
   void checkAuthStatus() async {
     emit(AuthInitialLoadingState());
-
-    final user = await authService.isLoggedIn();
+    final futures = await Future.wait(
+        [authService.isLoggedIn(), Future.delayed(const Duration(seconds: 1))]);
+    final user = futures[0] as User?;
     if (user != null) {
       _initServices(user);
       emit(AuthLoggedInState(user));

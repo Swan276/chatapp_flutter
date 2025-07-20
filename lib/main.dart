@@ -66,15 +66,16 @@ class _AppWrapper extends StatelessWidget {
           );
         } else if (state is AuthLoggedInState) {
           RouteManager.parentNavigatorKey.currentContext
-              ?.replace(RouteManager.chatsPath);
+              ?.go(RouteManager.chatsPath);
         } else if (state is AuthLoggedOutState) {
           RouteManager.parentNavigatorKey.currentContext
-              ?.replace(RouteManager.loginPath);
+              ?.go(RouteManager.loginPath);
         }
       },
       child: MaterialApp.router(
         routerConfig: RouteManager.router,
         title: 'Chat App',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme:
               ColorScheme.fromSeed(seedColor: UIColors.primary).copyWith(

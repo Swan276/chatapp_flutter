@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:chatapp_ui/src/data/datasources/websocket/video_call_websocket_datasource.dart';
@@ -75,6 +76,10 @@ class _VideoCallContentState extends State<VideoCallContent>
 
   bool callEnded = false;
 
+  Timer? callTimer;
+
+  String callDuration = "00:00";
+
   @override
   void initState() {
     // initializing renderers
@@ -86,6 +91,7 @@ class _VideoCallContentState extends State<VideoCallContent>
       videocallWsDs.endCallStream?.listen((event) {
         setState(() {
           callEnded = true;
+          callTimer?.cancel();
         });
       });
     });
@@ -211,6 +217,17 @@ class _VideoCallContentState extends State<VideoCallContent>
         );
       }
     }
+    callTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        if (mounted) {
+          setState(() {
+            callDuration =
+                "${timer.tick ~/ 60}:${(timer.tick % 60).toString().padLeft(2, '0')}";
+          });
+        }
+      },
+    );
   }
 
   _leaveCall() {
@@ -299,9 +316,9 @@ class _VideoCallContentState extends State<VideoCallContent>
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        "02:35",
-                        style: TextStyle(
+                      Text(
+                        callDuration,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
                           fontWeight: FontWeight.w200,
